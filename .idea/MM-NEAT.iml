@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib/pogamut" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/lib/pogamut" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-glue-java" />
+          <root url="jar://$MODULE_DIR$/lib/rl-glue/rl-glue-java/JavaRLGlueCodec.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/rl-glue/rl-glue-java/JavaRLGlueCodec.jar!/org" />
+          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" />
+          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-viz/libs" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-glue-java" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-viz/libs" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/vizdoom/bin/java" />
+        </CLASSES>
+        <JAVADOC />
+        <NATIVE>
+          <root url="file://$MODULE_DIR$/vizdoom/bin/java" />
+        </NATIVE>
+        <SOURCES />
+        <jarDirectory url="file://$MODULE_DIR$/vizdoom/bin/java" recursive="false" />
+      </library>
+    </orderEntry>
+  </component>
+</module>
