@@ -568,6 +568,10 @@ public class PopulationUtil {
 			public long getId() {
 				return offspringId;
 			}
+
+			public void setGeneration(int generation) {
+				// not used
+			}
 		};
 	}
 

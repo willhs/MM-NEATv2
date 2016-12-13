@@ -211,7 +211,7 @@ public class Parameters {
 		integerOptions.add("edibleTime", Constants.EDIBLE_TIME, "Initial edible ghost time in Ms. Pac-Man");
 		integerOptions.add("minEdibleTime", Constants.EDIBLE_TIME, "What edible time is reduced to across generations");
 		integerOptions.add("maxEdibleTime", 3 * Constants.EDIBLE_TIME, "What edible time starts at from the beginning of evolution");
-		integerOptions.add("consistentEdibleTimeGens", 50, "Number of gens at end of evolution when edible time is settled");
+		integerOptions.add("cousistentEdibleTimeGens", 50, "Number of gens at end of evolution when edible time is settled");
 		integerOptions.add("multinetworkComboReached", 0, "Tracks highest multinetwork combo reached so far to allow resuming after failure");
 		integerOptions.add("numActiveGhosts", 4, "Number of moving ghosts in pacman");
 		integerOptions.add("rawInputWindowSize", 5, "Raw input window size");
@@ -285,6 +285,7 @@ public class Parameters {
 		integerOptions.add("stopMode", -1, "Whenever this mode gets used, pause evaluation and wait for key press");
 		integerOptions.add("scentMode", -1, "Whenever this mode gets used, drop pheremone on scent path");
 		integerOptions.add("pacmanReplayDelay", Constants.DELAY, "Milliseconds of pause between pacman time steps in replay mode");
+		integerOptions.add("phaseLength", 70, "How many generations a phase lasts for in phased search");
 		// Long parameters
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
@@ -571,6 +572,7 @@ public class Parameters {
 		booleanOptions.add("replayPacman", false, "Replay pacman game from save file");
 		booleanOptions.add("hierarchicalMultitask", false, "Each multitask mode can consist of multiple preference neuron modules");
 		booleanOptions.add("trackCombiningCrossover", false, "Whether or not to track combining crossover information");
+		booleanOptions.add("phasedSearch", false, "Whether or not to use phased search");
 		// Double parameters
 		doubleOptions.add("linkExpressionThreshold", 0.2, "Threshold for hyperNEAT output to result in an expressed link");
 		doubleOptions.add("tugGoalIncrement0", 0.0, "Set amount to increase goal 0 by when using TUG");
@@ -625,6 +627,7 @@ public class Parameters {
 		doubleOptions.add("netLinkRate", 0.4, "Mutation rate for creation of new network synapses");
 		doubleOptions.add("netChangeActivationRate", 0.0, "Mutation rate for changing a neuron's activation function");
 		doubleOptions.add("netSpliceRate", 0.2, "Mutation rate for splicing of new network nodes");
+		doubleOptions.add("deleteNodeRate", 0.02, "Mutation rate for deleting network nodes");
 		doubleOptions.add("realMutateRate", 0.3, "Mutation rate for modifying indexes in real-valued string");
 		doubleOptions.add("crossoverRate", 0.5, "Rate of crossover if mating is used");
 		doubleOptions.add("mlpMutationRate", 0.1, "Rate of mutation for MLPs");

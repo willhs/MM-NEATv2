@@ -34,4 +34,8 @@ public class BoundedIntegerValuedGenotype extends NumericArrayGenotype<Integer> 
 	public void mutate() {
 		new ReplaceMutation().mutate(this);
 	}
+
+	public void setGeneration(int generation) {
+		// not used
+	}
 }

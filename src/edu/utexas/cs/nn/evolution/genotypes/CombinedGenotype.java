@@ -52,4 +52,8 @@ public class CombinedGenotype<X, Y> extends Pair<Genotype<X>, Genotype<Y>>implem
 	public long getId() {
 		return id;
 	}
+
+	public void setGeneration(int generation) {
+		// not used
+	}
 }

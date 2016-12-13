@@ -156,6 +156,8 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 					}
 				}
 
+				// for phased search. todo: refactor so that EA performs mutation?
+				e.setGeneration(generation);
 				e.mutate();// randomly mutates copied source
 			}
 

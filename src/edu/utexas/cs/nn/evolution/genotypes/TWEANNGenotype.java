@@ -15,8 +15,10 @@ import edu.utexas.cs.nn.util.datastructures.ArrayUtil;
 import edu.utexas.cs.nn.util.random.RandomGenerator;
 import edu.utexas.cs.nn.util.random.RandomNumbers;
 import edu.utexas.cs.nn.util.stats.StatisticsUtilities;
+import rlVizLib.utilities.random.RandomNumber;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Genotype for a Topology and Weight Evolving Neural Network. Standard genotype
@@ -29,7 +31,12 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
     // If this is true, then plain Node and Link genes are used instead 
     // of full genes with extra fields. 
     public static boolean smallerGenotypes = false;
-    
+
+    private boolean phasedSearch = false;
+    private int phaseLength = 70;
+    private int phase = 0;
+    private int generation;
+
     /**
      * Common features of both node and link genes
      *
@@ -494,6 +501,9 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
                 links.add(temp.get(k));
             }
         }
+
+        phasedSearch = Parameters.parameters.booleanParameter("phasedSearch");
+        phaseLength = Parameters.parameters.integerParameter("phaseLength");
     }
 
     /**
@@ -588,7 +598,18 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
      */
     @Override
     public void mutate() {
-        // System.out.println("Mutate:" + this.id);
+        if (phasedSearch) {
+            mutatePhasedSearch();
+            if (generation % phaseLength == 0) {
+                phase = (phase + 1) % 2;
+            }
+        } else {
+            mutateNormal();
+        }
+    }
+
+    private void mutateNormal() {
+               // System.out.println("Mutate:" + this.id);
         StringBuilder sb = new StringBuilder();
         sb.append(this.getId());
         sb.append(" ");
@@ -598,6 +619,7 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
         new MeltThenFreezeAlternateMutation().go(this, sb);
         // Delete
         new DeleteLinkMutation().go(this, sb);
+        new DeleteNodeMutation().go(this, sb);
         //new DeleteModeMutation().go(this, sb); // Disabled until fixed; currently not supported
         if (CommonConstants.allowMultipleFunctions) { // Can turn a TWEANN into a CPPN
             new ActivationFunctionMutation().go(this, sb);
@@ -643,6 +665,71 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
         }
 
         EvolutionaryHistory.logMutationData(sb.toString());
+    }
+
+    private void mutatePhasedSearch() {
+        // System.out.println("Mutate:" + this.id);
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getId());
+        sb.append(" ");
+        // Melting/Freezing
+        new MeltThenFreezePolicyMutation().go(this, sb);
+        new MeltThenFreezePreferenceMutation().go(this, sb);
+        new MeltThenFreezeAlternateMutation().go(this, sb);
+        // Delete
+        if (phase == 1) {
+            new DeleteLinkMutation().go(this, sb);
+            new DeleteNodeMutation().go(this, sb);
+        }
+
+        if (CommonConstants.allowMultipleFunctions) { // Can turn a TWEANN into a CPPN
+            new ActivationFunctionMutation().go(this, sb);
+        }
+        // Forms of mode mutation
+        if (this.numModules < CommonConstants.maxModes
+                // Make sure modes are somewhat evenly used
+                && (CommonConstants.ensembleModeMutation
+                || // possible if mode usage is actually selector's subnet usage
+                moduleUsage.length != numModules
+                || CommonConstants.minimalSubnetExecution
+                || minModuleUsage() >= (1.0 / (CommonConstants.usageForNewMode * numModules)))
+                // Only allow mode mutation when number of modes is same for all
+                && (!CommonConstants.onlyModeMutationWhenModesSame
+                || EvolutionaryHistory.minModes == EvolutionaryHistory.maxModes)
+                && // Make sure modes are different
+                (CommonConstants.distanceForNewMode == -1
+                        || CommonConstants.distanceForNewMode < lastModulesDistance())
+                && // If using niche restriction
+                (!CommonConstants.nicheRestrictionOnModeMutation
+                        || // Only allow new modes if niche with more or equal modes is doing well
+                        this.numModules <= TWEANNModulesNicheDefinition.bestHighModeNiche())
+                && phase == 0) {
+            // System.out.println("In Mode Mutation Block");
+            new MMP().go(this, sb);
+            new MMR().go(this, sb);
+            new MMD().go(this, sb);
+            new FullyConnectedModuleMutation().go(this, sb);
+        }
+        // Standard NEAT mutations
+        int chance = 0;
+        do {
+            if (phase == 0) {
+                new SpliceNeuronMutation().go(this, sb);
+                new NewLinkMutation().go(this, sb);
+            }
+            chance++;
+        } while (CommonConstants.mutationChancePerMode && chance < this.numModules);
+
+        if (CommonConstants.polynomialWeightMutation) {
+            new PolynomialWeightMutation().go(this, sb);
+        } else if (CommonConstants.perLinkMutateRate > 0) {
+            new AllWeightMutation().go(this, sb);
+        } else {
+            new WeightPurturbationMutation().go(this, sb);
+        }
+
+        EvolutionaryHistory.logMutationData(sb.toString());
+
     }
 
     /**
@@ -732,6 +819,28 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
      */
     public LinkGene deleteLink(int index) {
         return links.remove(index);
+    }
+
+    public NodeGene deleteNodeMutation() {
+        NodeGene[] hiddenNodes = nodes.stream()
+                .filter(n -> n.ntype == TWEANN.Node.NTYPE_HIDDEN)
+                .toArray(NodeGene[]::new);
+        if (hiddenNodes.length == 0) {
+            return null;
+        }
+        return deleteNode(hiddenNodes[RandomNumbers.randomGenerator.nextInt(hiddenNodes.length)]);
+    }
+
+    public NodeGene deleteNode(NodeGene node) {
+        List<LinkGene> connectedLinks = links.stream()
+                .filter(l -> l.sourceInnovation == node.innovation
+                    || l.targetInnovation == node.innovation)
+                .collect(Collectors.toList());
+
+        links.removeAll(connectedLinks);
+        nodes.remove(node);
+
+        return node;
     }
 
     /**
@@ -1877,5 +1986,10 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
         }
         TWEANNGenotype other = (TWEANNGenotype) o;
         return id == other.id;
+    }
+
+    @Override
+    public void setGeneration(int generation) {
+        this.generation = generation;
     }
 }

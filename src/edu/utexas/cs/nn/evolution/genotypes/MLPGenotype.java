@@ -113,4 +113,8 @@ public class MLPGenotype implements Genotype<MLP> {
 	public long getId() {
 		return id;
 	}
+
+	public void setGeneration(int generation) {
+		// not used
+	}
 }

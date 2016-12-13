@@ -16,12 +16,9 @@ import java.util.ArrayList;
  */
 public interface MultiplePopulationGenerationalEA extends GenerationalEA {
 
-	@SuppressWarnings("rawtypes")
 	public ArrayList<ArrayList<Genotype>> initialPopulations(ArrayList<Genotype> examples);
 
-	@SuppressWarnings("rawtypes")
 	public ArrayList<ArrayList<Genotype>> getNextGeneration(ArrayList<ArrayList<Genotype>> populations);
 
-	@SuppressWarnings("rawtypes")
 	public void close(ArrayList<ArrayList<Genotype>> populations);
 }

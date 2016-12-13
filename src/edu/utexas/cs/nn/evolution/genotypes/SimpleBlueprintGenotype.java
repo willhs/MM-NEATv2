@@ -50,4 +50,9 @@ public class SimpleBlueprintGenotype extends NumericArrayGenotype<Long> {
 		return new SimpleBlueprintGenotype(
 				((MultiplePopulationGenerationalEAExperiment) MMNEAT.experiment).randomBlueprint());
 	}
+
+	public void setGeneration(int generation){
+		// not used
+	}
+
 }

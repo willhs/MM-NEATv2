@@ -38,9 +38,7 @@ public abstract class CoevolutionMuLambda implements MultiplePopulationGeneratio
 	private final int mltype;
 	private final MultiplePopulationTask task;
 	protected final double crossoverRate;
-	@SuppressWarnings("rawtypes")
 	protected FitnessLog[] parentLogs;
-	@SuppressWarnings("rawtypes")
 	protected FitnessLog[] childLogs;
 	protected final boolean writeOutput;
 	private HashMap<Long, ArrayList<Long>> recentOffspring = new HashMap<Long, ArrayList<Long>>();

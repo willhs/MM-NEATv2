@@ -34,4 +34,8 @@ public class RealValuedGenotype extends NumericArrayGenotype<Double> {
 	public void mutate() {
 		new PerturbMutation(genes.size()).mutate(this);
 	}
+
+	public void setGeneration(int generation){
+		// not used
+	}
 }
