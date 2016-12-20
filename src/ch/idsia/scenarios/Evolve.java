@@ -81,7 +81,7 @@ public class Evolve {
         try {System.in.read();        } catch (IOException e) {            e.printStackTrace();        }
 
 //        for (Agent bestAgent : bestAgents) {
-//            task.evaluate(bestAgent);
+//            task.evaluateInputs(bestAgent);
 //        }
 
 

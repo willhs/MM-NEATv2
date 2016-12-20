@@ -32,10 +32,12 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
     // of full genes with extra fields. 
     public static boolean smallerGenotypes = false;
 
+    // phased search stuff. should really be in an EA or as its own strategy
     private boolean phasedSearch = false;
     private int phaseLength = 70;
     private int phase = 0;
     private int generation;
+    private int phases = 2;
 
     /**
      * Common features of both node and link genes
@@ -599,10 +601,11 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
     @Override
     public void mutate() {
         if (phasedSearch) {
-            mutatePhasedSearch();
-            if (generation % phaseLength == 0) {
-                phase = (phase + 1) % 2;
+            // change phase if it has been phaseLength since last phase change
+            if (generation % phaseLength == 0 && generation != 0) {
+                phase = (phase + 1) % phases;
             }
+            mutatePhasedSearch();
         } else {
             mutateNormal();
         }
@@ -619,7 +622,7 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
         new MeltThenFreezeAlternateMutation().go(this, sb);
         // Delete
         new DeleteLinkMutation().go(this, sb);
-        new DeleteNodeMutation().go(this, sb);
+//        new DeleteNodeMutation().go(this, sb);
         //new DeleteModeMutation().go(this, sb); // Disabled until fixed; currently not supported
         if (CommonConstants.allowMultipleFunctions) { // Can turn a TWEANN into a CPPN
             new ActivationFunctionMutation().go(this, sb);

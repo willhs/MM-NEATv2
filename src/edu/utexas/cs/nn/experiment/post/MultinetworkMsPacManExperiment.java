@@ -27,7 +27,7 @@ import java.util.Arrays;
 import wox.serial.Easy;
 
 /**
- * Designed to take several pre-evolved populations and evaluate them (not
+ * Designed to take several pre-evolved populations and evaluateInputs them (not
  * evolve)
  *
  * @author Jacob Schrum
@@ -144,7 +144,7 @@ public final class MultinetworkMsPacManExperiment<T extends Network> implements 
 
 			// This code evaluates the first network; a simpel test
 			// MONE.pacmanInputOutputMediator = mediators[0];
-			// Score<T> next = mpmTask.task.evaluate(genotypes[0]);
+			// Score<T> next = mpmTask.task.evaluateInputs(genotypes[0]);
 			ArrayList<Score> result = mpmTask.evaluate(genotypes);
 			Score<T> next = result.get(0);
 			System.out.println("Scores: " + next);

@@ -144,7 +144,8 @@ public class MMNEATLog {
 				}
 			}
 		} catch (FileNotFoundException ex) {
-			System.out.println("Could not setup log file");
+			System.err.println("Could not setup log file");
+			ex.printStackTrace();
 			System.exit(1);
 		}
 	}

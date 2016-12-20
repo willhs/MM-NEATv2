@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public interface MultiplePopulationTask extends Task {
 
         /**
-         * Take a list of populations and evaluate every member of each 
+         * Take a list of populations and evaluate every member of each
          * population.
          * @param populations list of lists of genotypes. 
          *        Each sub-list is one population.

@@ -1,5 +1,5 @@
 /**
- * Class to help evaluate the after-states in the Tetris project.
+ * Class to help evaluateInputs the after-states in the Tetris project.
  *
  * @author Jacob Schrum, Gabby Gonzalez
  */
