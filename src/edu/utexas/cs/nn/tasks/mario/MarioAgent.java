@@ -71,8 +71,8 @@ public abstract class MarioAgent <T> extends Organism implements Agent {
      * @return
      */
     protected double probe(int x, int y, byte[][] scene) {
-        int realX = x + 11; // unsure about these magic numbers -Gab
-        int realY = y + 11;
+        int realX = x; // unsure about these magic numbers -Gab
+        int realY = y;
         return (scene[realX][realY] != 0) ? 1 : 0;
     }
 

@@ -27,25 +27,7 @@
         <jarDirectory url="file://$MODULE_DIR$/lib/pogamut" recursive="false" />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-glue-java" />
-          <root url="jar://$MODULE_DIR$/lib/rl-glue/rl-glue-java/JavaRLGlueCodec.jar!/" />
-          <root url="jar://$MODULE_DIR$/lib/rl-glue/rl-glue-java/JavaRLGlueCodec.jar!/org" />
-          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" />
-          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-viz/libs" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" />
-        </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-glue-java" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-viz/libs" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/lib/rl-glue/rl-viz" recursive="false" type="SOURCES" />
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="JavaRLGlueCodec" level="application" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
