@@ -4,12 +4,15 @@ import edu.utexas.cs.nn.evolution.EvolutionaryHistory;
 import edu.utexas.cs.nn.evolution.MultiplePopulationGenerationalEA;
 import edu.utexas.cs.nn.evolution.genotypes.Genotype;
 import edu.utexas.cs.nn.evolution.genotypes.TWEANNGenotype;
+import edu.utexas.cs.nn.evolution.nsga2.Domination;
 import edu.utexas.cs.nn.evolution.nsga2.NSGA2;
 import edu.utexas.cs.nn.evolution.nsga2.NSGA2Score;
+import edu.utexas.cs.nn.evolution.nsga2.ParentComparator;
 import edu.utexas.cs.nn.log.FitnessLog;
 import edu.utexas.cs.nn.MMNEAT.MMNEAT;
 import edu.utexas.cs.nn.parameters.CommonConstants;
 import edu.utexas.cs.nn.parameters.Parameters;
+import edu.utexas.cs.nn.scores.Better;
 import edu.utexas.cs.nn.scores.Score;
 import edu.utexas.cs.nn.tasks.GroupTask;
 import edu.utexas.cs.nn.tasks.MultiplePopulationTask;
@@ -21,6 +24,8 @@ import edu.utexas.cs.nn.util.random.RandomNumbers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+
+import static edu.utexas.cs.nn.evolution.nsga2.NSGA2.cullCrossovers;
 
 /**
  * A class which supports cooevolution. Contains many extensions of
@@ -301,7 +306,95 @@ public abstract class CoevolutionMuLambda implements MultiplePopulationGeneratio
 	public ArrayList<Genotype> generateChildren(int numChildren, ArrayList<Score> parentScores) {
 		NSGA2Score[] scoresArray = NSGA2.staticNSGA2Scores(PopulationUtil.addListScoreType(parentScores));
 		return PopulationUtil.removeListGenotypeType(
-				NSGA2.generateNSGA2Children(numChildren, scoresArray, generation, mating, crossoverRate));
+				generateNSGA2Children(numChildren, scoresArray, generation, mating, crossoverRate));
+	}
+
+	/**
+	 * Generates a list of offspring genotypes created through NSGA2 sort of
+	 * parent genotypes
+	 *
+	 * @param <T> phenotype
+	 * @param numChildren
+	 * @param scoresArray
+	 * @param generation
+	 * @param mating
+	 * @param crossoverRate
+	 * @return list of offspring genotypes from sort
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> ArrayList<Genotype<T>> generateNSGA2Children(int numChildren, NSGA2Score<T>[] scoresArray,
+																   int generation, boolean mating, double crossoverRate) {
+		NSGA2.assignCrowdingDistance(scoresArray);
+		NSGA2.fastNonDominatedSort(scoresArray);
+
+		ArrayList<Genotype<T>> offspring = new ArrayList<Genotype<T>>(numChildren);
+		Better<NSGA2Score<T>> judge;// will hold the comparator that is used
+		if (generation == 0) {// first generation is a unique case that requires a different comparator
+			judge = new Domination<T>();
+		} else {// else a comparator that uses parent data is used to critique for children population
+			judge = new ParentComparator<T>();
+		}
+
+		for (int i = 0; i < numChildren; i++) {
+			int e1 = RandomNumbers.randomGenerator.nextInt(scoresArray.length);
+			int e2 = RandomNumbers.randomGenerator.nextInt(scoresArray.length);
+			// determines which of the two randomly chosen scores is better
+			NSGA2Score<T> better = judge.better(scoresArray[e1], scoresArray[e2]);
+			Genotype<T> source = better.individual;// stores better genotype
+			long parentId1 = source.getId();
+			long parentId2 = -1;
+			Genotype<T> e = source.copy();
+
+			// This restriction on mutation and crossover only makes sense when
+			// using pacman coevolution with a fitness/population for each
+			// individual level
+			if (!CommonConstants.requireFitnessDifferenceForChange || better.scores[0] > 0) {
+				// If neither net has reached a given level, the scores of 0
+				// will prevent evolution mating only occurs if on and randomly
+				if (mating && RandomNumbers.randomGenerator.nextDouble() < crossoverRate) {
+					e1 = RandomNumbers.randomGenerator.nextInt(scoresArray.length);
+					e2 = RandomNumbers.randomGenerator.nextInt(scoresArray.length);
+
+					Genotype<T> otherSource = judge.better(scoresArray[e1], scoresArray[e2]).individual;
+					parentId2 = otherSource.getId();
+					Genotype<T> otherOffspring;
+
+					if (CommonConstants.cullCrossovers) {
+						ArrayList<Genotype<T>> keepers = cullCrossovers(e, otherSource);
+						// Best two of litter get kept
+						e = keepers.get(0);
+						otherOffspring = keepers.get(1);
+					} else {// keeps all crossovers
+						Genotype<T> other = otherSource.copy();
+						// Genotype e is directly modified by the crossover call.
+						// Genotype otherOffspring is now a modified version of other.
+						otherOffspring = e.crossover(other);
+						assert otherOffspring.getId() != other.getId() : "otherOffspring should be a newly created genotype";
+					}
+					i++;
+					/*
+					 * The offspring e will be added no matter what. Because i
+					 * is increased and then checked, otherOffspring will NOT
+					 * always be added.
+					 */
+					if (i < numChildren) {
+						otherOffspring.mutate();
+						offspring.add(otherOffspring);
+						EvolutionaryHistory.logLineageData(parentId1 + " X " + parentId2 + " -> " + otherOffspring.getId());
+					}
+				}
+
+				e.mutate();// randomly mutates copied source
+			}
+
+			offspring.add(e);
+			if (parentId2 == -1) {
+				EvolutionaryHistory.logLineageData(parentId1 + " -> " + e.getId());
+			} else {
+				EvolutionaryHistory.logLineageData(parentId1 + " X " + parentId2 + " -> " + e.getId());
+			}
+		}
+		return offspring;
 	}
 
 	/**

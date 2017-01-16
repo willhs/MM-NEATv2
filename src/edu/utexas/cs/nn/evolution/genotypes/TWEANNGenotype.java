@@ -1,8 +1,11 @@
 package edu.utexas.cs.nn.evolution.genotypes;
 
 import edu.utexas.cs.nn.evolution.EvolutionaryHistory;
+import edu.utexas.cs.nn.evolution.GenerationalEA;
 import edu.utexas.cs.nn.evolution.MultiplePopulationGenerationalEA;
+import edu.utexas.cs.nn.evolution.mulambda.MuLambda;
 import edu.utexas.cs.nn.evolution.mutation.tweann.*;
+import edu.utexas.cs.nn.evolution.nsga2.NSGA2;
 import edu.utexas.cs.nn.evolution.nsga2.bd.characterizations.GeneralNetworkCharacterization;
 import edu.utexas.cs.nn.evolution.nsga2.bd.localcompetition.TWEANNModulesNicheDefinition;
 import edu.utexas.cs.nn.MMNEAT.MMNEAT;
@@ -20,6 +23,9 @@ import rlVizLib.utilities.random.RandomNumber;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static edu.utexas.cs.nn.evolution.nsga2.NSGA2.Phase.COMPLEXIFICATION;
+import static edu.utexas.cs.nn.evolution.nsga2.NSGA2.Phase.SIMPLIFICATION;
+
 /**
  * Genotype for a Topology and Weight Evolving Neural Network. Standard genotype
  * used by NEAT.
@@ -32,12 +38,7 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
     // of full genes with extra fields. 
     public static boolean smallerGenotypes = false;
 
-    // phased search stuff. should really be in an EA or as its own strategy
-    private boolean phasedSearch = false;
-    private int phaseLength = 70;
-    private int phase = 0;
     private int generation;
-    private int phases = 2;
 
     /**
      * Common features of both node and link genes
@@ -503,9 +504,6 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
                 links.add(temp.get(k));
             }
         }
-
-        phasedSearch = Parameters.parameters.booleanParameter("phasedSearch");
-        phaseLength = Parameters.parameters.integerParameter("phaseLength");
     }
 
     /**
@@ -600,96 +598,23 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
      */
     @Override
     public void mutate() {
-        if (phasedSearch) {
-            // change phase if it has been phaseLength since last phase change
-            if (generation % phaseLength == 0 && generation != 0) {
-                phase = (phase + 1) % phases;
-            }
-            mutatePhasedSearch();
-        } else {
-            mutateNormal();
-        }
-    }
-
-    private void mutateNormal() {
-               // System.out.println("Mutate:" + this.id);
-        StringBuilder sb = new StringBuilder();
-        sb.append(this.getId());
-        sb.append(" ");
-        // Melting/Freezing
-        new MeltThenFreezePolicyMutation().go(this, sb);
-        new MeltThenFreezePreferenceMutation().go(this, sb);
-        new MeltThenFreezeAlternateMutation().go(this, sb);
-        // Delete
-        new DeleteLinkMutation().go(this, sb);
-//        new DeleteNodeMutation().go(this, sb);
-        //new DeleteModeMutation().go(this, sb); // Disabled until fixed; currently not supported
-        if (CommonConstants.allowMultipleFunctions) { // Can turn a TWEANN into a CPPN
-            new ActivationFunctionMutation().go(this, sb);
-        }
-        // Forms of mode mutation
-        if (this.numModules < CommonConstants.maxModes
-                // Make sure modes are somewhat evenly used
-                && (CommonConstants.ensembleModeMutation
-                || // possible if mode usage is actually selector's subnet usage
-                moduleUsage.length != numModules
-                || CommonConstants.minimalSubnetExecution
-                || minModuleUsage() >= (1.0 / (CommonConstants.usageForNewMode * numModules)))
-                // Only allow mode mutation when number of modes is same for all
-                && (!CommonConstants.onlyModeMutationWhenModesSame
-                || EvolutionaryHistory.minModes == EvolutionaryHistory.maxModes)
-                && // Make sure modes are different
-                (CommonConstants.distanceForNewMode == -1
-                || CommonConstants.distanceForNewMode < lastModulesDistance())
-                && // If using niche restriction
-                (!CommonConstants.nicheRestrictionOnModeMutation
-                || // Only allow new modes if niche with more or equal modes is doing well
-                this.numModules <= TWEANNModulesNicheDefinition.bestHighModeNiche())) {
-            // System.out.println("In Mode Mutation Block");
-            new MMP().go(this, sb);
-            new MMR().go(this, sb);
-            new MMD().go(this, sb);
-            new FullyConnectedModuleMutation().go(this, sb);
-        }
-        // Standard NEAT mutations
-        int chance = 0;
-        do {
-            new SpliceNeuronMutation().go(this, sb);
-            new NewLinkMutation().go(this, sb);
-            chance++;
-        } while (CommonConstants.mutationChancePerMode && chance < this.numModules);
-
-        if (CommonConstants.polynomialWeightMutation) {
-            new PolynomialWeightMutation().go(this, sb);
-        } else if (CommonConstants.perLinkMutateRate > 0) {
-            new AllWeightMutation().go(this, sb);
-        } else {
-            new WeightPurturbationMutation().go(this, sb);
-        }
-
-        EvolutionaryHistory.logMutationData(sb.toString());
-    }
-
-    private void mutatePhasedSearch() {
         // System.out.println("Mutate:" + this.id);
         StringBuilder sb = new StringBuilder();
-        sb.append(this.getId());
+        sb.append(TWEANNGenotype.this.getId());
         sb.append(" ");
         // Melting/Freezing
-        new MeltThenFreezePolicyMutation().go(this, sb);
-        new MeltThenFreezePreferenceMutation().go(this, sb);
-        new MeltThenFreezeAlternateMutation().go(this, sb);
+        new MeltThenFreezePolicyMutation().go(TWEANNGenotype.this, sb);
+        new MeltThenFreezePreferenceMutation().go(TWEANNGenotype.this, sb);
+        new MeltThenFreezeAlternateMutation().go(TWEANNGenotype.this, sb);
         // Delete
-        if (phase == 1) {
-            new DeleteLinkMutation().go(this, sb);
-            new DeleteNodeMutation().go(this, sb);
-        }
-
+        new DeleteLinkMutation().go(TWEANNGenotype.this, sb);
+        //        new DeleteNodeMutation().go(this, sb);
+        //new DeleteModeMutation().go(this, sb); // Disabled until fixed; currently not supported
         if (CommonConstants.allowMultipleFunctions) { // Can turn a TWEANN into a CPPN
-            new ActivationFunctionMutation().go(this, sb);
+            new ActivationFunctionMutation().go(TWEANNGenotype.this, sb);
         }
         // Forms of mode mutation
-        if (this.numModules < CommonConstants.maxModes
+        if (TWEANNGenotype.this.numModules < CommonConstants.maxModes
                 // Make sure modes are somewhat evenly used
                 && (CommonConstants.ensembleModeMutation
                 || // possible if mode usage is actually selector's subnet usage
@@ -705,35 +630,98 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
                 && // If using niche restriction
                 (!CommonConstants.nicheRestrictionOnModeMutation
                         || // Only allow new modes if niche with more or equal modes is doing well
-                        this.numModules <= TWEANNModulesNicheDefinition.bestHighModeNiche())
-                && phase == 0) {
+                        TWEANNGenotype.this.numModules <= TWEANNModulesNicheDefinition.bestHighModeNiche())) {
             // System.out.println("In Mode Mutation Block");
-            new MMP().go(this, sb);
-            new MMR().go(this, sb);
-            new MMD().go(this, sb);
-            new FullyConnectedModuleMutation().go(this, sb);
+            new MMP().go(TWEANNGenotype.this, sb);
+            new MMR().go(TWEANNGenotype.this, sb);
+            new MMD().go(TWEANNGenotype.this, sb);
+            new FullyConnectedModuleMutation().go(TWEANNGenotype.this, sb);
         }
         // Standard NEAT mutations
         int chance = 0;
         do {
-            if (phase == 0) {
-                new SpliceNeuronMutation().go(this, sb);
-                new NewLinkMutation().go(this, sb);
-            }
+            new SpliceNeuronMutation().go(TWEANNGenotype.this, sb);
+            new NewLinkMutation().go(TWEANNGenotype.this, sb);
             chance++;
-        } while (CommonConstants.mutationChancePerMode && chance < this.numModules);
+        } while (CommonConstants.mutationChancePerMode && chance < TWEANNGenotype.this.numModules);
 
         if (CommonConstants.polynomialWeightMutation) {
-            new PolynomialWeightMutation().go(this, sb);
+            new PolynomialWeightMutation().go(TWEANNGenotype.this, sb);
         } else if (CommonConstants.perLinkMutateRate > 0) {
-            new AllWeightMutation().go(this, sb);
+            new AllWeightMutation().go(TWEANNGenotype.this, sb);
         } else {
-            new WeightPurturbationMutation().go(this, sb);
+            new WeightPurturbationMutation().go(TWEANNGenotype.this, sb);
         }
 
         EvolutionaryHistory.logMutationData(sb.toString());
-
     }
+
+
+    public void mutate(NSGA2.Phase phase) {
+        // System.out.println("Mutate:" + this.id);
+        StringBuilder sb = new StringBuilder();
+        sb.append(TWEANNGenotype.this.getId());
+        sb.append(" ");
+        // Melting/Freezing
+        new MeltThenFreezePolicyMutation().go(TWEANNGenotype.this, sb);
+        new MeltThenFreezePreferenceMutation().go(TWEANNGenotype.this, sb);
+        new MeltThenFreezeAlternateMutation().go(TWEANNGenotype.this, sb);
+        // Delete
+        if (phase == SIMPLIFICATION) {
+            new DeleteLinkMutation().go(TWEANNGenotype.this, sb);
+            new DeleteNodeMutation().go(TWEANNGenotype.this, sb);
+        }
+
+        if (CommonConstants.allowMultipleFunctions) { // Can turn a TWEANN into a CPPN
+            new ActivationFunctionMutation().go(TWEANNGenotype.this, sb);
+        }
+        // Forms of mode mutation
+        if (TWEANNGenotype.this.numModules < CommonConstants.maxModes
+                // Make sure modes are somewhat evenly used
+                && (CommonConstants.ensembleModeMutation
+                || // possible if mode usage is actually selector's subnet usage
+                moduleUsage.length != numModules
+                || CommonConstants.minimalSubnetExecution
+                || minModuleUsage() >= (1.0 / (CommonConstants.usageForNewMode * numModules)))
+                // Only allow mode mutation when number of modes is same for all
+                && (!CommonConstants.onlyModeMutationWhenModesSame
+                || EvolutionaryHistory.minModes == EvolutionaryHistory.maxModes)
+                && // Make sure modes are different
+                (CommonConstants.distanceForNewMode == -1
+                        || CommonConstants.distanceForNewMode < lastModulesDistance())
+                && // If using niche restriction
+                (!CommonConstants.nicheRestrictionOnModeMutation
+                        || // Only allow new modes if niche with more or equal modes is doing well
+                        TWEANNGenotype.this.numModules <= TWEANNModulesNicheDefinition.bestHighModeNiche())
+                && phase == COMPLEXIFICATION) {
+            // System.out.println("In Mode Mutation Block");
+            new MMP().go(TWEANNGenotype.this, sb);
+            new MMR().go(TWEANNGenotype.this, sb);
+            new MMD().go(TWEANNGenotype.this, sb);
+            new FullyConnectedModuleMutation().go(TWEANNGenotype.this, sb);
+        }
+        int chance = 0;
+        // if in additive phase
+        if (phase == COMPLEXIFICATION) {
+            do {
+                new SpliceNeuronMutation().go(TWEANNGenotype.this, sb);
+                new NewLinkMutation().go(TWEANNGenotype.this, sb);
+                chance++;
+            } while (CommonConstants.mutationChancePerMode && chance < TWEANNGenotype.this.numModules);
+        }
+
+        if (CommonConstants.polynomialWeightMutation) {
+            new PolynomialWeightMutation().go(TWEANNGenotype.this, sb);
+        } else if (CommonConstants.perLinkMutateRate > 0) {
+            new AllWeightMutation().go(TWEANNGenotype.this, sb);
+        } else {
+            new WeightPurturbationMutation().go(TWEANNGenotype.this, sb);
+        }
+
+        EvolutionaryHistory.logMutationData(sb.toString());
+    }
+
+
 
     /**
      * Mutation to add a new fully connected output mode.
@@ -1995,4 +1983,5 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
     public void setGeneration(int generation) {
         this.generation = generation;
     }
+
 }

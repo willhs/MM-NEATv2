@@ -22,6 +22,8 @@ import edu.utexas.cs.nn.util.PopulationUtil;
 import edu.utexas.cs.nn.util.datastructures.ArrayUtil;
 import edu.utexas.cs.nn.util.stats.StatisticsUtilities;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -50,8 +52,16 @@ public abstract class MuLambda<T> implements SinglePopulationGenerationalEA<T> {
 	protected boolean writeOutput;
 	private final int MAX_MODE_OF_LOG_INTEREST = 5;
 	public boolean evaluatingParents = false;
-        public boolean msPacMan;
-        
+    public boolean msPacMan;
+
+	/**
+	 * Current best score found by the EA
+	 */
+	private Score<T> bestScore;
+	private int gensWithoutImprovement = 0;
+	private double mpc; // mean population complexity
+	private int gensWithoutMPCReduction = 0;
+
 	/**
 	 * Initialize evolutionary algorithm.
 	 * 
@@ -380,13 +390,57 @@ public abstract class MuLambda<T> implements SinglePopulationGenerationalEA<T> {
 		// This way, all logs are updated at once, along with the generation
 		// param being advanced.
 		logParentInfo(parentScores);
+
+		ArrayList<Score<T>> combined = new ArrayList<Score<T>>(mu + lambda);
+		combined.addAll(parentScores);
+		combined.addAll(childrenScores);
+
+		if (MMNEAT.task instanceof MsPacManTask) {
+			Collections.sort(combined, (s1, s2) -> Double.compare(s1.otherStats[0], s2.otherStats[0]));
+		} else {
+			Collections.sort(combined);
+		}
+
+		// update whether score has improved
+		Score<T> genBest = combined.get(combined.size()-1);
+		if (bestScore != null && genBest.isBetter(bestScore)) {
+			bestScore = genBest;
+			gensWithoutImprovement = 0;
+		} else if (bestScore == null) {
+			bestScore = genBest;
+		} else {
+			gensWithoutImprovement++;
+		}
+
+		// update MPC
+		if (parents.get(0) instanceof TWEANNGenotype) {
+			double mpc = getMPC(parents);
+			if (mpc < this.mpc) {
+				gensWithoutMPCReduction = 0;
+			} else {
+				gensWithoutMPCReduction++;
+			}
+			this.mpc = mpc;
+		}
+
 		if (writeOutput) {
-			ArrayList<Score<T>> combined = new ArrayList<Score<T>>(mu + lambda);
-			combined.addAll(parentScores);
-			combined.addAll(childrenScores);
 			MMNEAT.logPerformanceInformation(combined, generation);
 		}
-		return selectAndAdvance(parentScores, childrenScores);
+
+		ArrayList<Genotype<T>> nextGen = selectAndAdvance(parentScores, childrenScores);
+
+		return nextGen;
+	}
+
+	public double getMPC(List<Genotype<T>> gen) {
+		long nodes = gen.stream()
+				.flatMap(g -> ((TWEANNGenotype)g).nodes.stream())
+				.count();
+		long links = gen.stream()
+				.flatMap(g -> ((TWEANNGenotype)g).links.stream())
+				.count();
+
+		return (nodes + links) / (double)gen.size();
 	}
 
 	/**
@@ -409,6 +463,10 @@ public abstract class MuLambda<T> implements SinglePopulationGenerationalEA<T> {
 				modeLog.close();
 			}
 		}
+	}
+
+	public Score<T> getBestScore() {
+		return bestScore;
 	}
 
 	/**
@@ -443,4 +501,16 @@ public abstract class MuLambda<T> implements SinglePopulationGenerationalEA<T> {
 	 * @return Genotypes of filtered/selected individuals.
 	 */
 	public abstract ArrayList<Genotype<T>> selection(int numParents, ArrayList<Score<T>> scores);
+
+	public int gensWithoutImprovement() {
+		return gensWithoutImprovement;
+	}
+
+	public int getGensWithoutMPCReduction() {
+		return gensWithoutMPCReduction;
+	}
+
+	public double getMPC() {
+		return mpc;
+	}
 }

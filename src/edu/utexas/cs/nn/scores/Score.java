@@ -4,6 +4,7 @@ import edu.utexas.cs.nn.evolution.genotypes.Genotype;
 import edu.utexas.cs.nn.util.datastructures.ArrayUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * This is a class that keeps track of an agent's score, the number of
@@ -12,7 +13,7 @@ import java.util.Arrays;
  *
  * @author Jacob Schrum
  */
-public class Score<T> {
+public class Score<T> implements Comparable<Score>{
 	// number of evals performed to determine this agent's score
 	public int evals;
 	// Array of scores in each objective
@@ -236,5 +237,10 @@ public class Score<T> {
 	 */
 	public void replaceScores(double[] newScores){
 		scores = newScores;
+	}
+
+	@Override
+	public int compareTo(Score o) {
+		return this.isBetter(o) ? 1 : this.isWorse(o) ? -1 : 0;
 	}
 }
