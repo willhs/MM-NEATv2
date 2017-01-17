@@ -452,7 +452,7 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 	 */
 	private class PhasedSearchMutate implements MutateStrategy {
 
-		private Phase phase = COMPLEXIFICATION;
+		private Phase phase = SIMPLIFICATION; //COMPLEXIFICATION;
 
 		private int lastPhaseSwitchGen = 0; // the last generation that a phase switch happened
 
