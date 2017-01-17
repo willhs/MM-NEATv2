@@ -285,7 +285,8 @@ public class Parameters {
 		integerOptions.add("stopMode", -1, "Whenever this mode gets used, pause evaluation and wait for key press");
 		integerOptions.add("scentMode", -1, "Whenever this mode gets used, drop pheremone on scent path");
 		integerOptions.add("pacmanReplayDelay", Constants.DELAY, "Milliseconds of pause between pacman time steps in replay mode");
-		integerOptions.add("phaseLength", 70, "How many generations a phase lasts for in phased search");
+		integerOptions.add("minComplexificationGens", 50, "How many gens to allow complexifying phase to last without improving fitness");
+		integerOptions.add("minSimplificationGens", 10, "Minimum gens to allow simplifying phase to last");
 		// Long parameters
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");

@@ -456,9 +456,8 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 
 		private int lastPhaseSwitchGen = 0; // the last generation that a phase switch happened
 
-		private final int MAX_GENS_WITHOUT_IMPROVEMENT = 1;
-		private final int MAX_GENS_WITHOUT_MPC_REDUCTION = 1;
-		private final int DEFAULT_COOLDOWN = 2;
+		private final int MAX_GENS_WITHOUT_IMPROVEMENT = Parameters.parameters.integerParameter("minComplexificationGens");
+		private final int MAX_GENS_WITHOUT_MPC_REDUCTION = Parameters.parameters.integerParameter("minSimplificationGens");;
 
 		public void mutate(TWEANNGenotype g) {
 			decidePhase();
@@ -467,7 +466,8 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 
 		public void decidePhase() {
 			// if phase switch cooldown is still active
-			if (NSGA2.this.generation - DEFAULT_COOLDOWN < lastPhaseSwitchGen) {
+			int cooldown = phase == COMPLEXIFICATION ? MAX_GENS_WITHOUT_IMPROVEMENT : MAX_GENS_WITHOUT_MPC_REDUCTION;
+			if (NSGA2.this.generation - cooldown < lastPhaseSwitchGen) {
 				return;
 			}
 
@@ -476,7 +476,7 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 				phase = SIMPLIFICATION;
 				lastPhaseSwitchGen = NSGA2.this.generation;
 			} else if (phase == SIMPLIFICATION
-					&& getGensWithoutMPCReduction() > MAX_GENS_WITHOUT_MPC_REDUCTION) {
+					&& getGensWithoutMPCReduction() > 0) {
 				phase = COMPLEXIFICATION;
 				lastPhaseSwitchGen = NSGA2.this.generation;
 			}
