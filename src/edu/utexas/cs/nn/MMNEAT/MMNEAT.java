@@ -556,9 +556,10 @@ public class MMNEAT {
 				System.out.println("No task defined! It is assumed that this is part of a JUnit test.");
 				setNNInputParameters(5, 3);
 			} else {
-				System.out.println("A valid task must be specified!");
-				System.out.println(task);
-				System.exit(1);
+//				System.out.println("A valid task must be specified!");
+//				System.out.println(task);
+//				System.exit(1);
+				setNNInputParameters(((Parameters.parameters.integerParameter("marioInputWidth") * Parameters.parameters.integerParameter("marioInputHeight")) * 1) + 0, 4); //hard coded for now, 5 button outputs
 			}
 
 			// Changes network input setting to HyperNEAT settings

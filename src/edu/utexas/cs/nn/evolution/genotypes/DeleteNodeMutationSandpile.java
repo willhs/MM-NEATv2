@@ -10,7 +10,7 @@ import edu.utexas.cs.nn.networks.TWEANN;
 public class DeleteNodeMutationSandpile extends TWEANNMutation {
 
     public DeleteNodeMutationSandpile() {
-        super("deleteNodeSandpile");
+        super("deleteNodeSandpileRate");
     }
 
     @Override

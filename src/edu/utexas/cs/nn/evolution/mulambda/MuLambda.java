@@ -362,7 +362,7 @@ public abstract class MuLambda<T> implements SinglePopulationGenerationalEA<T> {
 		System.out.println("Eval parents: ");
 		ArrayList<Score<T>> parentScores = task.evaluateAll(parents);
 		long end = System.currentTimeMillis();
-		System.out.println("Done parents: " + TimeUnit.MILLISECONDS.toMinutes(end - start) + " seconds");
+		System.out.println("Done parents: " + TimeUnit.MILLISECONDS.toMinutes(end - start) + " minutes");
 
 		// Get some info about modes, if doing mode mutation
 		if (TWEANN.preferenceNeuron()) {
@@ -383,17 +383,13 @@ public abstract class MuLambda<T> implements SinglePopulationGenerationalEA<T> {
 		System.out.println("Eval children: ");
 		ArrayList<Score<T>> childrenScores = processChildren(parentScores);
 		end = System.currentTimeMillis();
-		System.out.println("Done children: " + TimeUnit.MILLISECONDS.toSeconds(end - start) + " seconds");
-		System.out.print("Writing logs...");
-		start = System.currentTimeMillis();
+		System.out.println("Done children: " + TimeUnit.MILLISECONDS.toMinutes(end - start) + " minutes");
 
 		// Parent logging occurs after child evals to decrease odds of logs
 		// getting out of sync.
 		// This way, all logs are updated at once, along with the generation
 		// param being advanced.
 		logParentInfo(parentScores);
-		end = System.currentTimeMillis();
-		System.out.print(TimeUnit.MILLISECONDS.toSeconds(end- start) + " seconds");
 
 		ArrayList<Score<T>> combined = new ArrayList<Score<T>>(mu + lambda);
 		combined.addAll(parentScores);

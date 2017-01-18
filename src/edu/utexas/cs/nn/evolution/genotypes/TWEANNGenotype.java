@@ -674,7 +674,8 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
         new MeltThenFreezeAlternateMutation().go(this, sb);
         // Delete
         if (phase == SIMPLIFICATION) {
-//            new DeleteLinkMutation().go(this, sb);
+            new DeleteLinkMutation().go(this, sb);
+            new DeleteNodeMutation().go(this, sb);
             new DeleteLinkMutationSandpile().go(this, sb);
             new DeleteNodeMutationSandpile().go(this, sb);
         }
@@ -819,9 +820,14 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
         return deleteLink(chosenIndex);
     }
 
-    public LinkGene deleteNodeSandpileMutation() {
-        List<NodeGene> tmp = new ArrayList<>(nodes);
-        Collections.sort(tmp, (a,b) -> {
+    public NodeGene deleteNodeSandpileMutation() {
+        List<NodeGene> hidden = new ArrayList<>(nodes).stream()
+                .filter(n -> n.ntype == TWEANN.Node.NTYPE_HIDDEN)
+                .collect(Collectors.toList());
+
+        if (hidden.isEmpty()) return null;
+
+        Collections.sort(hidden, (a,b) -> {
             long aConns = links.stream()
                     .filter(l -> l.sourceInnovation == a.innovation || l.targetInnovation == a.innovation)
                     .count();
@@ -832,9 +838,8 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
             return Long.compare(aConns, bConns);
         });
 
-        Gene g = chooseGeneSandpile(new ArrayList<>(tmp));
-        int chosenIndex = links.indexOf(g);
-        return deleteLink(chosenIndex);
+        NodeGene g = (NodeGene)chooseGeneSandpile(new ArrayList<>(hidden));
+        return deleteNode(g);
     }
 
     private Gene chooseGeneSandpile(List<Gene> genes) {

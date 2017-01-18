@@ -452,9 +452,12 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 	 */
 	private class PhasedSearchMutate implements MutateStrategy {
 
-		private Phase phase = SIMPLIFICATION; //COMPLEXIFICATION;
+		private Phase phase = COMPLEXIFICATION;
 
 		private int lastPhaseSwitchGen = 0; // the last generation that a phase switch happened
+
+		private boolean staticPhases = Parameters.parameters.integerParameter("phaseLength") != 0;
+		private int phaseLength = Parameters.parameters.integerParameter("phaseLength");
 
 		private final int MAX_GENS_WITHOUT_IMPROVEMENT = Parameters.parameters.integerParameter("minComplexificationGens");
 		private final int MAX_GENS_WITHOUT_MPC_REDUCTION = Parameters.parameters.integerParameter("minSimplificationGens");;
@@ -465,6 +468,12 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 		}
 
 		public void decidePhase() {
+
+			if (staticPhases) {
+				phase = currentGeneration() / phaseLength % 2 == 0 ? COMPLEXIFICATION : SIMPLIFICATION;
+				return;
+			}
+
 			// if phase switch cooldown is still active
 			int cooldown = phase == COMPLEXIFICATION ? MAX_GENS_WITHOUT_IMPROVEMENT : MAX_GENS_WITHOUT_MPC_REDUCTION;
 			if (NSGA2.this.generation - cooldown < lastPhaseSwitchGen) {
