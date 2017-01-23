@@ -226,4 +226,10 @@ public class MarioTask<T extends Network> extends NoisyLonerTask<T>implements Ne
 		}
 		return conn;
 	}
+
+	public int numInputs() {
+		int height = Parameters.parameters.integerParameter("marioInputHeight");
+		int width = Parameters.parameters.integerParameter("marioInputWidth");
+		return width * height;
+	}
 }

@@ -189,9 +189,9 @@ public class Parameters {
 		integerOptions.add("HNTTetrisProcessDepth", 1, "The number of processing layers in HNT tetris substrate");
 		integerOptions.add("marioInputStartX", -1, "The x coordinate offset for Mario inputs grid");
 		integerOptions.add("marioInputStartY", -1, "The y coordinate offset for Mario inputs grid");
-		integerOptions.add("marioInputHeight", 3, "The height for a Mario input section");
-		integerOptions.add("marioInputWidth", 3, "The width for a Mario input section");
-		integerOptions.add("marioLevelDifficulty", 3, "Sets the level difficulty for the Mario level");
+		integerOptions.add("marioInputHeight", 5, "The height for a Mario input section");
+		integerOptions.add("marioInputWidth", 12, "The width for a Mario input section");
+		integerOptions.add("marioLevelDifficulty", 3, "Sets the level phased-difficulty for the Mario level");
 		integerOptions.add("marioTimeLimit", 200, "Sets the time limit for the Mario agent in a given level");
 		integerOptions.add("doomInputPixelSmudge", 1, "Determines the amount of pixels to 'smudge' together for inputs");
 		integerOptions.add("doomInputColorVal", 2, "The number value for the color we want to use for inputs, default is red (2)");
@@ -285,7 +285,9 @@ public class Parameters {
 		integerOptions.add("stopMode", -1, "Whenever this mode gets used, pause evaluation and wait for key press");
 		integerOptions.add("scentMode", -1, "Whenever this mode gets used, drop pheremone on scent path");
 		integerOptions.add("pacmanReplayDelay", Constants.DELAY, "Milliseconds of pause between pacman time steps in replay mode");
-		integerOptions.add("phaseLength", 70, "How many generations a phase lasts for in phased search");
+		integerOptions.add("phaseLength", 70, "Length of search phases");
+		integerOptions.add("minComplexificationGens", 50, "How many gens to allow complexifying phase to last without improving fitness");
+		integerOptions.add("minSimplificationGens", 10, "Minimum gens to allow simplifying phase to last");
 		// Long parameters
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
@@ -618,6 +620,8 @@ public class Parameters {
 		doubleOptions.add("freezeAlternateRate", 0.0, "Mutation rate for melting all then freezing policy or preference neurons (alternating)");
 		doubleOptions.add("fullMMRate", 0.0, "Mutation rate for mode mutation that connects to all inputs");
 		doubleOptions.add("deleteLinkRate", 0.0, "Mutation rate for deleting network links");
+		doubleOptions.add("deleteLinkSandpileRate", 0.0, "Mutate rate for deleting a link (sandpile variant)");
+		doubleOptions.add("deleteNodeSandpileRate", 0.0, "Mutate rate for deleting a link (sandpile variant)");
 		doubleOptions.add("redirectLinkRate", 0.0, "Mutation rate for redirecting network links");
 		doubleOptions.add("deleteModeRate", 0.0, "Mutation rate for deleting network modes");
 		doubleOptions.add("mmpRate", 0.0, "Mutation rate for adding a new network mode (MM(P) for previous)");
@@ -628,7 +632,7 @@ public class Parameters {
 		doubleOptions.add("netLinkRate", 0.4, "Mutation rate for creation of new network synapses");
 		doubleOptions.add("netChangeActivationRate", 0.0, "Mutation rate for changing a neuron's activation function");
 		doubleOptions.add("netSpliceRate", 0.2, "Mutation rate for splicing of new network nodes");
-		doubleOptions.add("deleteNodeRate", 0.02, "Mutation rate for deleting network nodes");
+		doubleOptions.add("deleteNodeRate", 0.0, "Mutation rate for deleting network nodes");
 		doubleOptions.add("realMutateRate", 0.3, "Mutation rate for modifying indexes in real-valued string");
 		doubleOptions.add("crossoverRate", 0.5, "Rate of crossover if mating is used");
 		doubleOptions.add("mlpMutationRate", 0.1, "Rate of mutation for MLPs");

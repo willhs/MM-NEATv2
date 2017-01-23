@@ -7,6 +7,7 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.utexas.cs.nn.tasks.mario.CooperativeMarioTask;
 import org.rlcommunity.rlglue.codec.taskspec.TaskSpec;
 
 import edu.utexas.cs.nn.breve2D.dynamics.Breve2DDynamics;
@@ -243,7 +244,8 @@ public class MMNEAT {
 	 */
 	public static boolean taskHasSubnetworks() {
 		return CooperativeSubtaskSelectorMsPacManTask.class.equals(Parameters.parameters.classParameter("task"))
-				|| CooperativeSubtaskCombinerMsPacManTask.class.equals(Parameters.parameters.classParameter("task"));
+				|| CooperativeSubtaskCombinerMsPacManTask.class.equals(Parameters.parameters.classParameter("task"))
+                || Parameters.parameters.classParameter("task").equals(CooperativeMarioTask.class);
 	}
 
 	/**
@@ -545,7 +547,7 @@ public class MMNEAT {
 				System.out.println("set up dummy hyperNEAT task. Used for testing purposes only");
 			} else if(task instanceof HyperNEATSpeedTask) {
 				System.out.println("set up dummy hyperNEAT task. Used for testing purposes only");
-			}else if (task instanceof MarioTask) {
+			}else if (task instanceof MarioTask || task instanceof CooperativeMarioTask) {
 				setNNInputParameters(((Parameters.parameters.integerParameter("marioInputWidth") * Parameters.parameters.integerParameter("marioInputHeight")) * 2) + 1, MarioTask.MARIO_OUTPUTS); //hard coded for now, 5 button outputs
 				System.out.println("Set up Mario Task");
 			} else if (task == null) {
@@ -554,9 +556,10 @@ public class MMNEAT {
 				System.out.println("No task defined! It is assumed that this is part of a JUnit test.");
 				setNNInputParameters(5, 3);
 			} else {
-				System.out.println("A valid task must be specified!");
-				System.out.println(task);
-				System.exit(1);
+//				System.out.println("A valid task must be specified!");
+//				System.out.println(task);
+//				System.exit(1);
+				setNNInputParameters(((Parameters.parameters.integerParameter("marioInputWidth") * Parameters.parameters.integerParameter("marioInputHeight")) * 1) + 0, 4); //hard coded for now, 5 button outputs
 			}
 
 			// Changes network input setting to HyperNEAT settings

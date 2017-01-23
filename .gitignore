@@ -123,5 +123,5 @@ _vizdoom.ini
 .idea/gradle.xml
 .idea/libraries
 
-# others
-/src/META-INF
+# Others
+**/META-INF

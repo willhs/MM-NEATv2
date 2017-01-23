@@ -291,7 +291,7 @@ public abstract class LonerTask<T> implements SinglePopulationTask<T> {
 			}
 			Easy.save(bestPacMan, bestPacManDir + "/bestPacMan.xml");
 			// System.out.println("Saved best Ms. Pac-Man agent with score of "
-			// + maxPacManScore);
+			// + ~);
 			FileUtilities.simpleFileWrite(bestPacManDir + "/score.txt", bestScoreSet.toString());
 		}
 

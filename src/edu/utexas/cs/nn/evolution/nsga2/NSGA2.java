@@ -2,6 +2,7 @@ package edu.utexas.cs.nn.evolution.nsga2;
 
 import edu.utexas.cs.nn.evolution.EvolutionaryHistory;
 import edu.utexas.cs.nn.evolution.genotypes.Genotype;
+import edu.utexas.cs.nn.evolution.genotypes.TWEANNGenotype;
 import edu.utexas.cs.nn.evolution.mulambda.MuPlusLambda;
 import edu.utexas.cs.nn.MMNEAT.MMNEAT;
 import edu.utexas.cs.nn.parameters.CommonConstants;
@@ -18,6 +19,9 @@ import edu.utexas.cs.nn.util.random.RandomNumbers;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import static edu.utexas.cs.nn.evolution.nsga2.NSGA2.Phase.COMPLEXIFICATION;
+import static edu.utexas.cs.nn.evolution.nsga2.NSGA2.Phase.SIMPLIFICATION;
+
 /**
  * Implementation of Deb's NSGA2 multiobjective EA. NSGA2 stands for non-sorting
  * genetic algorithm 2
@@ -29,6 +33,9 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 
 	protected boolean mating;// whether or not mating will occur
 	protected double crossoverRate;// rate at which phenotypes are crossed over
+
+	private MutateStrategy mutateStrategy;
+	protected int gensWithoutImprovement = 0;
 
 	/**
 	 * Default constructor
@@ -63,6 +70,9 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 		super(task, mu, mu, io);
 		mating = Parameters.parameters.booleanParameter("mating");
 		crossoverRate = Parameters.parameters.doubleParameter("crossoverRate");
+		mutateStrategy = Parameters.parameters.booleanParameter("phasedSearch")
+			? new PhasedSearchMutate()
+			: new StandardMutate();
 	}
 
 	/**
@@ -94,7 +104,7 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 	 * @return list of offspring genotypes from sort
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> ArrayList<Genotype<T>> generateNSGA2Children(int numChildren, NSGA2Score<T>[] scoresArray,
+	public <T> ArrayList<Genotype<T>> generateNSGA2Children(int numChildren, NSGA2Score<T>[] scoresArray,
 			int generation, boolean mating, double crossoverRate) {
 		assignCrowdingDistance(scoresArray);
 		fastNonDominatedSort(scoresArray);
@@ -150,15 +160,13 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 					 * always be added.
 					 */
 					if (i < numChildren) {
-						otherOffspring.mutate();
+						mutate(otherOffspring);
 						offspring.add(otherOffspring);
 						EvolutionaryHistory.logLineageData(parentId1 + " X " + parentId2 + " -> " + otherOffspring.getId());
 					}
 				}
 
-				// for phased search. todo: refactor so that EA performs mutation?
-				e.setGeneration(generation);
-				e.mutate();// randomly mutates copied source
+				mutate(e);// randomly mutates copied source
 			}
 
 			offspring.add(e);
@@ -169,6 +177,14 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 			}
 		}
 		return offspring;
+	}
+
+	private <T> void mutate(Genotype<T> e) {
+		if (e instanceof TWEANNGenotype) {
+			mutateStrategy.mutate((TWEANNGenotype)e);
+		} else {
+			e.mutate();
+		}
 	}
 
 	/**
@@ -264,7 +280,7 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 	 *            Each instance is a set of multiple scores for a member of the
 	 *            population that was just evaluated.
 	 */
-	private static <T> void assignCrowdingDistance(NSGA2Score<T>[] scores) {
+	public static <T> void assignCrowdingDistance(NSGA2Score<T>[] scores) {
 		// reset distances
 		for (int i = 0; i < scores.length; i++) {
 			scores[i].setCrowdingDistance(0);
@@ -305,7 +321,7 @@ public class NSGA2<T> extends MuPlusLambda<T> {
 	 *         sublists that is returned. Earlier sublists dominate subsequent
 	 *         sublists.
 	 */
-	private static <T> ArrayList<ArrayList<NSGA2Score<T>>> fastNonDominatedSort(NSGA2Score<T>[] scores) {
+	public static <T> ArrayList<ArrayList<NSGA2Score<T>>> fastNonDominatedSort(NSGA2Score<T>[] scores) {
 
 		for (int i = 0; i < scores.length; i++) {
 			assert scores[i] != null : "Score is null! " + i;
@@ -414,4 +430,66 @@ public class NSGA2<T> extends MuPlusLambda<T> {
         ArrayList<Genotype<T>> keepers = staticSelection(2, staticNSGA2Scores(litter));
         return keepers;
     }
+
+	public int getGensWithoutImprovement() {
+		return gensWithoutImprovement;
+	}
+
+	private interface MutateStrategy {
+		void mutate(TWEANNGenotype e);
+	}
+
+	private class StandardMutate implements MutateStrategy {
+		public void mutate(TWEANNGenotype g) {
+			g.mutate();
+		}
+	}
+
+	public enum Phase { SIMPLIFICATION, COMPLEXIFICATION };
+
+	/**
+	 * Created by hardwiwill on 13/01/17.
+	 */
+	private class PhasedSearchMutate implements MutateStrategy {
+
+		private Phase phase = COMPLEXIFICATION;
+
+		private int lastPhaseSwitchGen = 0; // the last generation that a phase switch happened
+
+		private boolean staticPhases = Parameters.parameters.integerParameter("phaseLength") != 0;
+		private int phaseLength = Parameters.parameters.integerParameter("phaseLength");
+
+		private final int MAX_GENS_WITHOUT_IMPROVEMENT = Parameters.parameters.integerParameter("minComplexificationGens");
+		private final int MAX_GENS_WITHOUT_MPC_REDUCTION = Parameters.parameters.integerParameter("minSimplificationGens");;
+
+		public void mutate(TWEANNGenotype g) {
+			decidePhase();
+			g.mutate(phase);
+		}
+
+		public void decidePhase() {
+
+			if (staticPhases) {
+				phase = currentGeneration() / phaseLength % 2 == 0 ? COMPLEXIFICATION : SIMPLIFICATION;
+				return;
+			}
+
+			// if phase switch cooldown is still active
+			int cooldown = phase == COMPLEXIFICATION ? MAX_GENS_WITHOUT_IMPROVEMENT : MAX_GENS_WITHOUT_MPC_REDUCTION;
+			if (NSGA2.this.generation - cooldown < lastPhaseSwitchGen) {
+				return;
+			}
+
+			if (phase == COMPLEXIFICATION
+					&& gensWithoutImprovement() > MAX_GENS_WITHOUT_IMPROVEMENT) {
+				phase = SIMPLIFICATION;
+				lastPhaseSwitchGen = NSGA2.this.generation;
+			} else if (phase == SIMPLIFICATION
+					&& getGensWithoutMPCReduction() > 0) {
+				phase = COMPLEXIFICATION;
+				lastPhaseSwitchGen = NSGA2.this.generation;
+			}
+		}
+	}
+
 }

@@ -60,6 +60,4 @@ public interface Genotype<T> {
 	 * @return unique ID number
 	 */
 	public long getId();
-
-	void setGeneration(int generation);
 }
