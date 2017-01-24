@@ -285,7 +285,7 @@ public class Parameters {
 		integerOptions.add("stopMode", -1, "Whenever this mode gets used, pause evaluation and wait for key press");
 		integerOptions.add("scentMode", -1, "Whenever this mode gets used, drop pheremone on scent path");
 		integerOptions.add("pacmanReplayDelay", Constants.DELAY, "Milliseconds of pause between pacman time steps in replay mode");
-		integerOptions.add("phaseLength", 70, "Length of search phases");
+		integerOptions.add("phaseLength", 0, "Length of search phases");
 		integerOptions.add("minComplexificationGens", 50, "How many gens to allow complexifying phase to last without improving fitness");
 		integerOptions.add("minSimplificationGens", 10, "Minimum gens to allow simplifying phase to last");
 		// Long parameters
@@ -576,6 +576,7 @@ public class Parameters {
 		booleanOptions.add("hierarchicalMultitask", false, "Each multitask mode can consist of multiple preference neuron modules");
 		booleanOptions.add("trackCombiningCrossover", false, "Whether or not to track combining crossover information");
 		booleanOptions.add("phasedSearch", false, "Whether or not to use phased search");
+		booleanOptions.add("startComplexification", true, "Whether to start in complexification phase; if not start in simplification");
 		// Double parameters
 		doubleOptions.add("linkExpressionThreshold", 0.2, "Threshold for hyperNEAT output to result in an expressed link");
 		doubleOptions.add("tugGoalIncrement0", 0.0, "Set amount to increase goal 0 by when using TUG");
@@ -641,6 +642,7 @@ public class Parameters {
 		doubleOptions.add("monsterRayLength", 5.0 * Breve2DGame.AGENT_MAGNITUDE, "Length of monster ray traces");
 		doubleOptions.add("crossExcessRate", 0.0, "Portion of TWEANN crossovers that include excess/disjoint genes");
 		doubleOptions.add("explorePreference", 0.5, "High for more exploration vs. low for more exploitation when using UCB1");
+		doubleOptions.add("sandpileSlope", 1.0, "The slope for sandpile mutations");
 		// String parameters
 		stringOptions.add("gameWad", "freedoom2.wad", "The wad file name for the current VizDoom game");
 		stringOptions.add("matchImageFile", "", "path of the image for image match task");
