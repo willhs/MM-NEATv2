@@ -35,7 +35,7 @@ public class TWEANNGenotype implements NetworkGenotype<TWEANN> {
     // of full genes with extra fields. 
     public static boolean smallerGenotypes = false;
 
-    private double sandpileSlope = 0.5;
+    private double sandpileSlope = Parameters.parameters.doubleParameter("sandpileSlope");
 
     /**
      * Common features of both node and link genes
