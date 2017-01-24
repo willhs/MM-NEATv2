@@ -288,6 +288,7 @@ public class Parameters {
 		integerOptions.add("phaseLength", 0, "Length of search phases");
 		integerOptions.add("minComplexificationGens", 50, "How many gens to allow complexifying phase to last without improving fitness");
 		integerOptions.add("minSimplificationGens", 10, "Minimum gens to allow simplifying phase to last");
+		integerOptions.add("testTrials", 100, "Number of trials for the test phase (only used for one Experiment)");
 		// Long parameters
 		longOptions.add("lastInnovation", 0l, "Highest innovation number used so far");
 		longOptions.add("lastGenotypeId", 0l, "Highest genotype id used so far");
